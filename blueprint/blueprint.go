@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.yaml.in/yaml/v3"
 )
@@ -180,10 +181,23 @@ type Paper struct {
 	Handbook      *HandbookRef    `yaml:"handbook,omitempty" json:"handbook,omitempty"`
 	Route         []string        `yaml:"route,omitempty" json:"route,omitempty"`
 	Notes         string          `yaml:"notes,omitempty" json:"notes,omitempty"`
+	Claim         *PaperClaim     `yaml:"claim,omitempty" json:"claim,omitempty"` // only in the record of a fresh claim, spec 07.14
 
 	File  string   `yaml:"-" json:"-"`
 	Nodes []string `yaml:"-" json:"nodes,omitempty"` // the nodes that cite the paper
 }
+
+// PaperClaim is the block that a paper record of a fresh claim of route R1 has in addition to the other fields, spec 07.14. A field is empty when it is not known.
+type PaperClaim struct {
+	FirstSeen        string   `yaml:"first_seen" json:"first_seen"`
+	CheckedPart      string   `yaml:"checked_part,omitempty" json:"checked_part,omitempty"`
+	UnrefereedInputs []string `yaml:"unrefereed_inputs,omitempty" json:"unrefereed_inputs,omitempty"` // the dependencies that are claims too
+	AuthorsContacted string   `yaml:"authors_contacted,omitempty" json:"authors_contacted,omitempty"` // the date of the letter, spec 14.4
+	LeanResult       string   `yaml:"lean_result,omitempty" json:"lean_result,omitempty"`
+}
+
+// LeanResults are the values of lean_result in the claim block of a paper record, spec 07.14.
+var LeanResults = []string{"checked", "gap found", "counterexample"}
 
 // Decl is one declaration in the Lean records.
 type Decl struct {
@@ -683,6 +697,20 @@ func (p *Project) Check() []string {
 				bad(pp.File, "the result %q names the node %s, which is not a node", r.ID, r.Node)
 			}
 		}
+		if c := pp.Claim; c != nil {
+			if !isDate(c.FirstSeen) {
+				bad(pp.File, "the claim block needs first_seen as a date YYYY-MM-DD, not %q", c.FirstSeen)
+			}
+			if c.AuthorsContacted != "" && !isDate(c.AuthorsContacted) {
+				bad(pp.File, "authors_contacted %q is not a date YYYY-MM-DD", c.AuthorsContacted)
+			}
+			if c.LeanResult != "" && !contains(LeanResults, c.LeanResult) {
+				bad(pp.File, "the lean result %q is not one of %s", c.LeanResult, strings.Join(LeanResults, ", "))
+			}
+			if pp.ExpertStatus == "accepted" {
+				bad(pp.File, "a record with a claim block cannot have the expert status accepted")
+			}
+		}
 		for _, l := range pp.LeanElsewhere {
 			if !contains(LeanUses, l.Use) {
 				bad(pp.File, "the use %q of %s is not one of %s", l.Use, l.Repo, strings.Join(LeanUses, ", "))
@@ -814,4 +842,10 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// isDate reports whether s is a date in the form YYYY-MM-DD.
+func isDate(s string) bool {
+	_, err := time.Parse("2006-01-02", s)
+	return err == nil
 }
