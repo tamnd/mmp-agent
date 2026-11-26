@@ -1,0 +1,47 @@
+{{define "lab"}}
+<article class="node">
+{{template "trail" .}}
+{{template "head" .}}
+<div class="prose">
+{{.Body}}
+</div>
+{{range .LabRuns}}
+<section class="lab-run" aria-labelledby="run-{{.Rec.ID}}">
+  <h2 id="run-{{.Rec.ID}}"><a href="{{.URL}}">{{.Rec.ID}}</a></h2>
+  {{template "labfacts" .}}
+</section>
+{{else}}
+<p class="muted">The lab has no runs yet.</p>
+{{end}}
+{{template "foot" .}}
+</article>
+{{end}}
+
+{{define "labrun"}}{{$r := .Lab}}
+<article class="node">
+{{template "trail" .}}
+<header class="node-head">
+  <p class="eyebrow">Lab · {{$r.Rec.Experiment}}</p>
+  <h1>{{$r.Rec.ID}}</h1>
+</header>
+{{template "labfacts" $r}}
+<h2>The summary</h2>
+<div class="prose">
+{{.Body}}
+</div>
+{{template "foot" .}}
+</article>
+{{end}}
+
+{{define "labfacts"}}
+<table class="checks facts">
+  <tbody>
+  <tr><th scope="row">Question</th><td>{{.Rec.Question}}</td></tr>
+  <tr><th scope="row">Result</th><td>{{.Rec.Result}}</td></tr>
+  <tr><th scope="row">Node</th><td><a href="{{.Node.URL}}">{{.Node.Title}}</a> <span class="sub"><code>{{.Node.Tag}}</code></span>{{with .Nodes}}<br><span class="sub">Also: {{range $i, $n := .}}{{if $i}}, {{end}}<a href="{{$n.URL}}">{{$n.Tag}}</a>{{end}}</span>{{end}}</td></tr>
+  <tr><th scope="row">Spec</th><td><a href="{{.SpecURL}}"><code>{{.Rec.Spec}}</code></a> <span class="sub">sha256 {{printf "%.12s" .Rec.SpecSHA256}}</span></td></tr>
+  <tr><th scope="row">Run</th><td>{{.Rec.Tool}} {{.Rec.ToolVersion}}{{with .ToolURL}}, <a href="{{.}}">commit {{short $.Rec.Commit}}</a>{{end}}. {{.Wall}} on {{.Rec.Host}}, started {{.Rec.Started}}.</td></tr>
+  <tr><th scope="row">Files</th><td>{{range $i, $f := .Files}}{{if $i}}, {{end}}<a href="{{$f.URL}}">{{$f.Name}}</a> <span class="sub">{{$f.Size}}</span>{{end}}</td></tr>
+  </tbody>
+</table>
+{{end}}

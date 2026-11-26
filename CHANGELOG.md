@@ -1,0 +1,14 @@
+# Changelog
+
+All changes that a user can see are in this file. The format follows Keep a Changelog, and the versions follow Semantic Versioning.
+
+## Unreleased
+
+### Added
+
+- The first version of the toolchain `mmp`, from the toolchain of the sibling project langlands. It has the commands `check`, `status`, `index`, `port check`, `fidelity`, `trust`, `paper`, `lab`, `claim`, `queue`, `agent`, `map`, `site build` and `site serve`.
+- The status `proved-ext` of spec 06.4: a node with a bridge theorem that builds clean, when the audit of the external library has passed. While the audit is open, such a node is `claimed`.
+- `records/bridge.json` and `records/audit.json` in the project, and the trust rows Q9 (the audit) and Q10 (the answer of the authors of a claim).
+- The tiers T0 to T11 of spec 07, the research routes R1 to R9 of spec 04.1, the role `auditor` of spec 10.3, and the top theorems of spec 14.2.
+- The pages `/statements/` and `/audit/` in the menu of the site.
+- The lab experiment E2 of spec 13.3: the mlds of the isolated cyclic quotient germs of dimension 3 and 4. In dimension 3 it checks the terminal lemma and the mld 1 + 1/r of a terminal germ.

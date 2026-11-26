@@ -1,0 +1,29 @@
+{{define "paper"}}{{$p := .Paper.Paper}}
+<article class="node">
+{{template "trail" .}}
+<header class="node-head">
+  <p class="eyebrow">{{$p.Key}} · tier {{$p.Tier}} · tag {{$p.Read.Tag}}</p>
+  <h1>{{.Title}}</h1>
+  {{with $p.Authors}}<p class="lead">{{join . ", "}}{{with $p.Where}}. {{.}}{{end}}{{with $p.Year}}, {{.}}{{end}}.</p>{{end}}
+</header>
+<table class="checks facts">
+  <tbody>
+  <tr><th scope="row">Why</th><td>{{.Paper.Why}}</td></tr>
+  {{with $p.Read.Version}}<tr><th scope="row">Read</th><td>{{.}}, by {{$p.Read.By}} on {{$p.Read.Date}}</td></tr>{{end}}
+  {{with $p.LeanStatus}}<tr><th scope="row">In Lean</th><td>{{.}}{{with $p.CodeLicence}} (code licence {{.}}){{end}}</td></tr>{{end}}
+  {{with $p.LeanElsewhere}}<tr><th scope="row">Other formalizations</th><td>{{range .}}<span class="sub">{{.Repo}}: {{.What}}, {{.Licence}}, use {{.Use}}</span> {{end}}</td></tr>{{end}}
+  {{with $p.Route}}<tr><th scope="row">Routes</th><td>{{join . ", "}}</td></tr>{{end}}
+  {{with $p.ExpertStatus}}<tr><th scope="row">Expert status</th><td>{{.}}</td></tr>{{end}}
+  {{with .Paper.Links}}<tr><th scope="row">Links</th><td>{{range .}}<a href="{{.URL}}">{{.Title}}</a> {{end}}</td></tr>{{end}}
+  </tbody>
+</table>
+{{with $p.Results}}<h2>Results that the project needs</h2>
+<table class="checks">
+  <thead><tr><th scope="col">Result</th><th scope="col">Kind</th><th scope="col">Lean statement</th></tr></thead>
+  <tbody>{{range .}}<tr><td>{{.ID}}</td><td>{{.Kind}}</td><td><code>{{.Statement}}</code></td></tr>{{end}}</tbody>
+</table>{{end}}
+{{with .Paper.Notes}}<h2>Notes</h2><div class="prose">{{.}}</div>{{end}}
+{{with .Paper.Nodes}}<h2>Nodes from this paper</h2>{{template "nodelist" .}}{{end}}
+{{template "foot" .}}
+</article>
+{{end}}
