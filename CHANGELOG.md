@@ -4,6 +4,10 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ## Unreleased
 
+### Added
+
+- The family `simplicial` of the lab experiment E2: with `family: simplicial` and `dimension: 3` in the inputs, `mmp lab run` lists every simplicial toric 3-fold germ up to the index `max_index`, by the Hermite normal forms of the dual lattices, once up to a permutation of the coordinates. For each germ it records the group, the mld at the fixed point with its minimizers, the mld of the germ, terminal, canonical, the divisors of log discrepancy at most 1, and enc in the old sense and in the sense of Han-Liu Definition 3.8(1). It checks that each terminal germ is cyclic of type 1/r(1, -1, a) with the mld 1 + 1/r, and that its cyclic isolated germs up to index 40 are those of the family `cyclic`, germ for germ. `list_index` bounds the germs that `germs.json` lists. The default family is `cyclic`, so an old spec gives the same result.
+
 ## v0.0.4 - 2026-11-26
 
 ### Added

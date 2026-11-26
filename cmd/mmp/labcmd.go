@@ -42,7 +42,7 @@ func labList(args []string, stdout, stderr io.Writer) error {
 	for _, e := range lab.Experiments {
 		state := "no code yet"
 		if e.Runnable {
-			state = "mmp runs a small version"
+			state = "mmp runs it"
 		}
 		fmt.Fprintf(stdout, "  %s  %-25s %s (%s)\n", e.ID, state, e.Title, e.Route)
 	}
