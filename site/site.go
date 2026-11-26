@@ -201,6 +201,63 @@ type RouteData struct {
 	URL         string
 }
 
+// AuditData is the data of the audit page, from records/audit.json and the exit records of audit/.
+type AuditData struct {
+	Source   string
+	Commit   string
+	Date     string
+	Passed   bool
+	Steps    []AuditStep
+	Findings []AuditFinding
+}
+
+// AuditStep is one step of the audit, spec 04.3.
+type AuditStep struct {
+	ID, State, Class string
+	Records          []SourceLink
+}
+
+// AuditFinding is the number of open findings of one severity, spec 14.5.
+type AuditFinding struct {
+	Severity string
+	Count    int
+}
+
+// auditData returns the data of the audit page, or nil when there is no records/audit.json.
+func (b *builder) auditData() (*AuditData, error) {
+	a := b.proj.Audit
+	if a == nil {
+		return nil, nil
+	}
+	recs, err := blueprint.AuditRecords(b.opt.Content)
+	if err != nil {
+		return nil, fmt.Errorf("site: %w", err)
+	}
+	d := &AuditData{Source: a.Source, Commit: a.Commit, Date: a.Date, Passed: a.Passed}
+	for _, s := range blueprint.AuditSteps {
+		st := AuditStep{ID: s, State: a.Steps[s]}
+		if st.State == "" {
+			st.State = "not started"
+		}
+		switch st.State {
+		case "done":
+			st.Class = "yes"
+		case "in progress":
+			st.Class = "open"
+		}
+		for _, r := range recs {
+			if r.Step == s {
+				st.Records = append(st.Records, SourceLink{Key: path.Base(r.Path), URL: ContentRepo + "/blob/main/" + r.Path})
+			}
+		}
+		d.Steps = append(d.Steps, st)
+	}
+	for _, sev := range blueprint.AuditSeverities {
+		d.Findings = append(d.Findings, AuditFinding{Severity: sev, Count: a.Findings[sev]})
+	}
+	return d, nil
+}
+
 // view is the data of one page for the templates.
 type view struct {
 	Site        *Info
@@ -218,6 +275,7 @@ type view struct {
 	Route       *RouteData
 	Routes      []RouteData
 	Lab         *LabRun
+	Audit       *AuditData
 	LabRuns     []LabRun
 	Body        template.HTML
 	Content     template.HTML
@@ -462,6 +520,12 @@ func (b *builder) collect() error {
 			v.Path, v.Section, v.tmpl = "routes/", "routes", "routes"
 			v.Trail = append(home(), Crumb{Text: "Routes", Current: true})
 			if v.Routes, err = b.routeData(); err != nil {
+				return err
+			}
+		case "audit":
+			v.Path, v.Section, v.tmpl = "audit/", "audit", "audit"
+			v.Trail = append(home(), Crumb{Text: front.Title, Current: true})
+			if v.Audit, err = b.auditData(); err != nil {
 				return err
 			}
 		case "lab":
@@ -812,6 +876,9 @@ func (b *builder) machine(w *writer) {
 	w.json("api/pages.json", map[string]any{"name": "mmp", "commit": b.opt.Commit, "built": b.opt.Date, "pages": pages})
 	w.json("api/search.json", search)
 	w.json("api/trust.json", b.info.Trust)
+	if b.proj.Audit != nil {
+		w.json("api/audit.json", b.proj.Audit)
+	}
 	w.json("api/nodes.json", map[string]any{"lean": b.proj.Lean, "nodes": b.proj.Nodes})
 	w.json("api/papers.json", b.proj.Papers)
 	w.json("api/routes.json", b.proj.Routes)

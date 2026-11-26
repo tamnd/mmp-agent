@@ -29,6 +29,9 @@ mmp fidelity show MMWK2DDDPC   # the checks of one statement, by node tag or Lea
 mmp fidelity set MinimalModel.ConeTheoremKlt F4=true   # record a check that a person or a role did
 mmp fidelity run -all          # compute F1 from records/lean.json for each statement
 mmp trust -lean ../mmp-lean    # write records/trust.json and print the answers Q0 to Q10
+mmp audit status               # the steps A1 to A8 of the audit of AxiomMath/MMP, with their exit records
+mmp audit step A1 done         # set the state of a step in records/audit.json
+mmp audit axioms -source ../MMP -json audit/axiom-mmp/A2.json   # step A2: #print axioms on the seven declarations
 mmp paper list -tier T5        # the paper records of papers/, with their tier and status
 mmp paper show Rei83           # one paper record, with the status of its results from the map
 mmp paper add -key FS04 -id T5-04 -title "..." -tier T5 -why "..." -expert-status accepted 10.2748/tmj/1113246736
@@ -146,6 +149,14 @@ F1 is computed from `records/lean.json`: the declaration is in the record, it ha
 | Q10 | A person answers it from the letters in the claim records, so it is `not run`. |
 
 The replay record is JSON: `{"commit": "...", "date": "YYYY-MM-DD", "run": "<link>", "checkers": [{"name": "lean4lean", "independent": true, "ok": true}], "comparator": {"ok": true}}`. The trust workflow of mmp-lean writes it, and the comparator part is optional.
+
+## The audit record
+
+`mmp audit` keeps `records/audit.json`, the state of the audit of AxiomMath/MMP in the steps A1 to A8 of spec 04.3. An exit record of a step is a file of `audit/<name>/` whose name starts with the step, for example `audit/axiom-mmp/A1-build.md`. `mmp audit step` does not set a step to `done` when the step has no exit record. `mmp audit finding -severity N add` and `close` count the open findings of each severity of spec 14.5. No command sets `passed` to true. A person sets it when all the steps are done and no finding of severity 1 or 2 is open, and the commands set it to false again when this is not true.
+
+`mmp audit axioms` is step A2. It writes a Lean file that imports `MMP` and has one `#print axioms` line for each declaration, runs it with `lake env lean` in the built checkout of `-source`, and compares each list with `propext`, `Classical.choice` and `Quot.sound`. A declaration that Lean does not find, or that uses another axiom, makes the command exit with 1. The flag `-log` keeps the full output of Lean, and `-json` writes the report.
+
+The site shows the steps, the exit records and the open findings on `/audit/`, and writes the record to `/api/audit.json`.
 
 ## The paper records
 

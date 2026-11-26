@@ -1,0 +1,30 @@
+{{define "audit"}}
+<article class="node">
+{{template "trail" .}}
+{{template "head" .}}
+{{with .Audit}}
+<section aria-labelledby="audit-state">
+<h2 id="audit-state">The state of the audit</h2>
+<p>The audit of <a href="https://github.com/{{.Source}}">{{.Source}}</a> at the commit <code>{{.Commit}}</code>{{with .Date}}, on {{.}}{{end}}. Passed: <span class="mark {{if .Passed}}yes{{else}}no{{end}}">{{if .Passed}}yes{{else}}no{{end}}</span>.</p>
+<table class="checks">
+  <thead><tr><th scope="col">State</th><th scope="col">Step</th><th scope="col">Exit records</th></tr></thead>
+  <tbody>
+  {{range .Steps}}<tr><td class="state"><span class="mark {{.Class}}">{{.State}}</span></td><th scope="row">{{.ID}}</th><td>{{range $i, $r := .Records}}{{if $i}}, {{end}}<a href="{{$r.URL}}"><code>{{$r.Key}}</code></a>{{else}}none yet{{end}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+<table class="checks">
+  <thead><tr><th scope="col">Severity</th><th scope="col">Open findings</th></tr></thead>
+  <tbody>
+  {{range .Findings}}<tr><th scope="row">{{.Severity}}</th><td>{{.Count}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</section>
+{{end}}
+<div class="prose">
+{{.Body}}
+</div>
+<p class="page-foot">{{with .SourceURL}}<a href="{{.}}">The source of this page</a>. {{end}}{{if .Audit}}The data is <a href="{{url "api/audit.json"}}">api/audit.json</a>.{{end}}</p>
+</article>
+{{end}}
