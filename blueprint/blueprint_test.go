@@ -146,6 +146,25 @@ func TestPaperRecordFaults(t *testing.T) {
 	}
 }
 
+func TestPaperClaimBlock(t *testing.T) {
+	root := fixture(t)
+	write(t, root, "papers/Good2.yaml", "id: T8-12\nkey: Good2\ntitle: t\nread: {version: v1, by: reader, date: 2026-11-25, tag: S}\ntier: T8\nwhy: w\nexpert_status: claimed\nlean_status: none\nclaim:\n  first_seen: 2026-10-14\n  checked_part: the example\n  unrefereed_inputs: []\n  authors_contacted: null\n  lean_result: null\n")
+	write(t, root, "papers/Bad2.yaml", "id: T8-13\nkey: Bad2\ntitle: t\nread: {version: v1, by: reader, date: 2026-11-25, tag: S}\ntier: T8\nwhy: w\nexpert_status: accepted\nlean_status: none\nclaim:\n  first_seen: soon\n  authors_contacted: later\n  lean_result: fine\n")
+	p, err := Load(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	probs := strings.Join(p.Check(), "\n")
+	if strings.Contains(probs, "Good2") {
+		t.Errorf("the check reports a fault in a good claim block:\n%s", probs)
+	}
+	for _, want := range []string{"first_seen as a date", "authors_contacted \"later\"", "lean result \"fine\"", "cannot have the expert status accepted"} {
+		if !strings.Contains(probs, want) {
+			t.Errorf("the check does not report %q:\n%s", want, probs)
+		}
+	}
+}
+
 func TestFaithfulStatus(t *testing.T) {
 	root := fixture(t)
 	write(t, root, "blueprint/nodes/MM00000006.yaml", "tag: MM00000006\nkind: theorem\ntitle: Modularity\nstatement: Modularity over Q.\ntier: T8\nlean:\n  statement: MinimalModel.ModularityEllipticQ\n")
