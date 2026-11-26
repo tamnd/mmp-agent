@@ -6,10 +6,22 @@ import (
 	"sort"
 )
 
-// E2Inputs are the inputs of experiment E2, the minimal log discrepancies of toric germs. The run covers the isolated cyclic quotient germs 1/r(a_1, ..., a_n) of one dimension n, for each index r from 2 to the maximum.
+// E2Inputs are the inputs of experiment E2, the minimal log discrepancies of toric germs. The family cyclic, the default, covers the isolated cyclic quotient germs 1/r(a_1, ..., a_n) of one dimension n, for each index r from 2 to the maximum. The family simplicial covers each simplicial toric germ of dimension 3, whose index is the order of its group (e2s.go).
 type E2Inputs struct {
-	Dimension int `yaml:"dimension" json:"dimension"` // 3 or 4
-	MaxIndex  int `yaml:"max_index" json:"max_index"` // the largest index r
+	Dimension int    `yaml:"dimension" json:"dimension"`                       // 3 or 4
+	MaxIndex  int    `yaml:"max_index" json:"max_index"`                       // the largest index r
+	Family    string `yaml:"family,omitempty" json:"family,omitempty"`         // cyclic or simplicial; empty is cyclic
+	ListIndex int    `yaml:"list_index,omitempty" json:"list_index,omitempty"` // simplicial: germs.json lists the germs with r <= list_index; 0 is max_index
+}
+
+// Simplicial says whether the inputs are of the family simplicial.
+func (in E2Inputs) Simplicial() bool { return in.Family == "simplicial" }
+
+func (in E2Inputs) listIndex() int {
+	if in.ListIndex == 0 {
+		return in.MaxIndex
+	}
+	return in.ListIndex
 }
 
 // The limits keep a run inside the budget of spec 13.6 on one machine.
@@ -20,11 +32,21 @@ const (
 
 func (in E2Inputs) check() error {
 	switch {
+	case in.Family != "" && in.Family != "cyclic" && in.Family != "simplicial":
+		return fmt.Errorf("E2: the family is %q, but mmp runs only the families cyclic and simplicial", in.Family)
+	case in.Simplicial() && in.Dimension != 3:
+		return fmt.Errorf("E2: the family simplicial has only the dimension 3, not %d", in.Dimension)
+	case in.Simplicial() && in.MaxIndex > e2MaxIndexSimplicial3:
+		return fmt.Errorf("E2: the maximum index of the family simplicial is %d", e2MaxIndexSimplicial3)
+	case !in.Simplicial() && in.ListIndex != 0:
+		return errors.New("E2: list_index is an input of the family simplicial only")
+	case in.ListIndex < 0 || in.ListIndex > in.MaxIndex:
+		return fmt.Errorf("E2: list_index is %d, but it must be between 0 and max_index", in.ListIndex)
 	case in.Dimension != 3 && in.Dimension != 4:
 		return fmt.Errorf("E2: the dimension is %d, but mmp runs only the dimensions 3 and 4", in.Dimension)
 	case in.MaxIndex < 2:
 		return errors.New("E2: the maximum index must be at least 2")
-	case in.Dimension == 3 && in.MaxIndex > e2MaxIndex3:
+	case !in.Simplicial() && in.Dimension == 3 && in.MaxIndex > e2MaxIndex3:
 		return fmt.Errorf("E2: the maximum index in dimension 3 is %d", e2MaxIndex3)
 	case in.Dimension == 4 && in.MaxIndex > e2MaxIndex4:
 		return fmt.Errorf("E2: the maximum index in dimension 4 is %d", e2MaxIndex4)
@@ -103,12 +125,28 @@ func normalForm(w []int, r int, us []int) []int {
 		for i, a := range w {
 			cur[i] = u * a % r
 		}
-		sort.Ints(cur)
+		if len(cur) == 3 {
+			sort3(cur)
+		} else {
+			sort.Ints(cur)
+		}
 		if best == nil || less(cur, best) {
 			best = append(best[:0], cur...)
 		}
 	}
 	return best
+}
+
+func sort3(a []int) {
+	if a[0] > a[1] {
+		a[0], a[1] = a[1], a[0]
+	}
+	if a[1] > a[2] {
+		a[1], a[2] = a[2], a[1]
+	}
+	if a[0] > a[1] {
+		a[0], a[1] = a[1], a[0]
+	}
 }
 
 func less(a, b []int) bool {
@@ -152,10 +190,13 @@ func germ(w []int, r int) Germ {
 	return g
 }
 
-// RunE2 enumerates the germs and checks the predictions. In dimension 3 the predictions are the terminal lemma of Morrison-Stevens (an isolated cyclic quotient 3-fold germ is terminal if and only if two of its weights add to 0 mod r) and the mld 1 + 1/r of a terminal germ. Dimension 4 has no prediction: the run records the counts and the values for Target T (spec 04.12).
+// RunE2 enumerates the germs of the family cyclic and checks the predictions. In dimension 3 the predictions are the terminal lemma of Morrison-Stevens (an isolated cyclic quotient 3-fold germ is terminal if and only if two of its weights add to 0 mod r) and the mld 1 + 1/r of a terminal germ. Dimension 4 has no prediction: the run records the counts and the values for Target T (spec 04.12).
 func RunE2(in E2Inputs) (E2Result, error) {
 	if err := in.check(); err != nil {
 		return E2Result{}, err
+	}
+	if in.Simplicial() {
+		return E2Result{}, errors.New("E2: RunE2 runs the family cyclic; use RunE2Simplicial")
 	}
 	n := in.Dimension
 	res := E2Result{Dimension: n, Germs: []Germ{}, LemmaFails: []Germ{}, MldFails: []Germ{}, NoTerminal: []int{}}

@@ -30,7 +30,7 @@ type Experiment struct {
 // Experiments are the experiments of spec 13.3. Only E2 has code yet.
 var Experiments = []Experiment{
 	{"E1", "baskets and plurigenera of 3-folds of general type, and the volume bound 1/1680", "R1", false},
-	{"E2", "toric mlds and enc germs of the cyclic quotients of dimension 3 and 4", "R3, R4", true},
+	{"E2", "toric mlds and enc germs: the simplicial germs of dimension 3 and the cyclic quotients of dimension 3 and 4", "R3, R4", true},
 	{"E3", "the arithmetic of the counterexamples of Ajit to effective non-vanishing", "R1", false},
 	{"E4", "the questions of Ajit on weighted hypersurfaces with no sections", "R6", false},
 	{"E5", "the volumes of Fano 3-folds and of 3-folds of general type", "R6", false},
@@ -121,7 +121,7 @@ inputs:
   dimension: 3
   max_index: 60
 outputs: [germs.json, indices.json, summary.md]
-notes: A small version of E2 in Go, with no container and no network. It covers the isolated cyclic quotient germs, which are the simplicial toric germs with one box generator. It has no Lean certificate yet (13.4).
+notes: E2 in Go, with no container and no network. This spec covers the isolated cyclic quotient germs, the default family cyclic. The input family simplicial, with dimension 3, covers every simplicial toric 3-fold germ. It has no Lean certificate yet (13.4).
 `
 
 // Record is record.json of a run. The site reads the fields of site.LabRecord, and the other fields make the run reproducible.
@@ -204,18 +204,35 @@ func Run(s *Spec, opt Options) (*Record, error) {
 	if _, err := os.Stat(dir); err == nil && !opt.Force {
 		return nil, fmt.Errorf("lab: the run %s exists; use -force to replace it", dir)
 	}
-	res, err := RunE2(s.Inputs)
-	if err != nil {
-		return nil, err
-	}
-	rec.Mismatches, rec.Gaps = res.Mismatches(), res.Gaps()
-	rec.Result = e2Result(res)
-	files := map[string][]byte{
-		"germs.json":   marshal(res.Germs),
-		"indices.json": marshal(res.Indices),
+	var files map[string][]byte
+	var summary func() string
+	if s.Inputs.Simplicial() {
+		res, err := RunE2Simplicial(s.Inputs)
+		if err != nil {
+			return nil, err
+		}
+		rec.Mismatches, rec.Gaps = res.Mismatches(), res.Gaps()
+		rec.Result = e2sResult(res)
+		files = map[string][]byte{
+			"germs.json":   marshalLines(res.Germs),
+			"indices.json": marshal(res.Indices),
+		}
+		summary = func() string { return e2sSummary(s, rec, res) }
+	} else {
+		res, err := RunE2(s.Inputs)
+		if err != nil {
+			return nil, err
+		}
+		rec.Mismatches, rec.Gaps = res.Mismatches(), res.Gaps()
+		rec.Result = e2Result(res)
+		files = map[string][]byte{
+			"germs.json":   marshal(res.Germs),
+			"indices.json": marshal(res.Indices),
+		}
+		summary = func() string { return e2Summary(s, rec, res) }
 	}
 	rec.WallSeconds = float64(opt.Now().Sub(start).Milliseconds()) / 1000
-	files["summary.md"] = []byte(e2Summary(s, rec, res))
+	files["summary.md"] = []byte(summary())
 	if err := os.RemoveAll(dir); err != nil {
 		return nil, err
 	}
