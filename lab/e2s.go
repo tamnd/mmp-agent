@@ -108,11 +108,14 @@ func (r SResult) Gaps() int { return len(r.NoTerminal) }
 func hnf3(m [3][3]int) [3][3]int {
 	for col := 0; col < 3; col++ {
 		for {
-			p := -1
+			p := col
 			for i := col; i < 3; i++ {
-				if m[i][col] != 0 && (p < 0 || abs(m[i][col]) < abs(m[p][col])) {
+				if m[i][col] != 0 && (m[p][col] == 0 || abs(m[i][col]) < abs(m[p][col])) {
 					p = i
 				}
+			}
+			if m[p][col] == 0 {
+				return m // the rows are not a basis; the callers give only bases
 			}
 			m[col], m[p] = m[p], m[col]
 			done := true
@@ -580,30 +583,30 @@ func RunE2Simplicial(in E2Inputs) (SResult, error) {
 }
 
 // compare checks the cyclic isolated germs against the family cyclic, germ for germ.
-func (res *SResult) compare(cyc []SGerm, upto int) {
-	res.CompareIndex = upto
+func (r *SResult) compare(cyc []SGerm, upto int) {
+	r.CompareIndex = upto
 	old, err := RunE2(E2Inputs{Dimension: 3, MaxIndex: upto})
 	if err != nil {
-		res.CompareFails = append(res.CompareFails, err.Error())
+		r.CompareFails = append(r.CompareFails, err.Error())
 		return
 	}
 	byKey := map[string]SGerm{}
 	for _, g := range cyc {
 		k := fmt.Sprintf("1/%d%v", g.Index, g.Weights)
 		if _, ok := byKey[k]; ok {
-			res.CompareFails = append(res.CompareFails, k+" twice in the family simplicial")
+			r.CompareFails = append(r.CompareFails, k+" twice in the family simplicial")
 		}
 		byKey[k] = g
 	}
-	res.CompareGerms = len(old.Germs)
+	r.CompareGerms = len(old.Germs)
 	if len(cyc) != len(old.Germs) {
-		res.CompareFails = append(res.CompareFails, fmt.Sprintf("%d cyclic isolated germs, but the family cyclic has %d", len(cyc), len(old.Germs)))
+		r.CompareFails = append(r.CompareFails, fmt.Sprintf("%d cyclic isolated germs, but the family cyclic has %d", len(cyc), len(old.Germs)))
 	}
 	for _, o := range old.Germs {
 		k := fmt.Sprintf("1/%d%v", o.Index, o.Weights)
 		g, ok := byKey[k]
 		if !ok {
-			res.CompareFails = append(res.CompareFails, k+" is not in the family simplicial")
+			r.CompareFails = append(r.CompareFails, k+" is not in the family simplicial")
 			continue
 		}
 		// The germ of the enumeration is the group of the weights after a permutation p of the coordinates. Its minimizers must include the point of the smallest k of minimal age of the family cyclic, permuted by the same p.
@@ -622,25 +625,25 @@ func (res *SResult) compare(cyc []SGerm, upto int) {
 			}
 		}
 		if g.MldNum != o.MldNum || g.MldDen != o.MldDen || g.Terminal != o.Terminal || g.Canon != o.Canon || *g.Lemma != *o.Lemma || g.box != o.AtMost1 || !found {
-			res.CompareFails = append(res.CompareFails, fmt.Sprintf("%s: the family cyclic gives %+v, the family simplicial %s", k, o, describe(g)))
+			r.CompareFails = append(r.CompareFails, fmt.Sprintf("%s: the family cyclic gives %+v, the family simplicial %s", k, o, describe(g)))
 		}
 		if g.AtMost1 != o.AtMost1 {
-			res.Bug++
-			if res.BugExample == "" {
-				res.BugExample = fmt.Sprintf("%s has %d points of the box of age at most 1, and %d primitive points", k, o.AtMost1, g.AtMost1)
+			r.Bug++
+			if r.BugExample == "" {
+				r.BugExample = fmt.Sprintf("%s has %d points of the box of age at most 1, and %d primitive points", k, o.AtMost1, g.AtMost1)
 			}
 			if g.Enc != (o.AtMost1 == 1) {
-				res.BugEnc++
+				r.BugEnc++
 			}
 		}
 	}
 }
 
 // hand computes the hand cases twice, by closure and in the enumeration.
-func (res *SResult) hand() {
+func (r *SResult) hand() {
 	byIndex := map[int][]SGerm{}
 	for _, c := range handCases {
-		if c.r > res.MaxIndex {
+		if c.r > r.MaxIndex {
 			continue
 		}
 		if _, ok := byIndex[c.r]; !ok {
@@ -650,7 +653,7 @@ func (res *SResult) hand() {
 		g, err := GermOfGens(c.r, c.gens)
 		if err != nil {
 			h.Got = err.Error()
-			res.Hand = append(res.Hand, h)
+			r.Hand = append(r.Hand, h)
 			continue
 		}
 		h.Got = describe(g)
@@ -674,7 +677,7 @@ func (res *SResult) hand() {
 			}
 		}
 		h.Found = n == 1
-		res.Hand = append(res.Hand, h)
+		r.Hand = append(r.Hand, h)
 	}
 }
 
