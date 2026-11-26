@@ -581,15 +581,15 @@ func (p *Project) own(n *Node) (string, string) {
 			return st, why
 		}
 	}
-	if n.Kind == "claim" {
-		return Claimed, "a fresh claim; it is not a hypothesis of any node"
-	}
 	st, ok := p.decl(n.Lean.Statement)
 	if !ok {
 		if n.Lean.Statement == "" {
 			return Planned, "no Lean statement yet"
 		}
 		return Planned, "the Lean records have no declaration " + n.Lean.Statement
+	}
+	if n.Kind == "claim" {
+		return Claimed, "a fresh claim; it is not a hypothesis of any node"
 	}
 	if n.Lean.Proof != "" {
 		if d, ok := p.decl(n.Lean.Proof); ok {

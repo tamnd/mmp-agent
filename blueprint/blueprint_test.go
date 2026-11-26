@@ -182,3 +182,19 @@ func TestFaithfulStatus(t *testing.T) {
 		t.Errorf("a conjecture that passed the fidelity checks has status %s, not open", got)
 	}
 }
+
+func TestClaimNeedsAStatement(t *testing.T) {
+	root := fixture(t)
+	write(t, root, "blueprint/nodes/MM00000006.yaml", "tag: MM00000006\nkind: claim\ntitle: A fresh claim\nstatement: Claimed.\ntier: S\n")
+	write(t, root, "blueprint/nodes/MM00000007.yaml", "tag: MM00000007\nkind: claim\ntitle: A stated claim\nstatement: Claimed.\ntier: S\nlean:\n  statement: MinimalModel.ResolutionDimFourCharP\n")
+	p, err := Load(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := p.Node("MM00000006").Status; got != Planned {
+		t.Errorf("a claim with no Lean statement has status %s, want %s", got, Planned)
+	}
+	if got := p.Node("MM00000007").Status; got != Claimed {
+		t.Errorf("a claim with a Lean statement has status %s, want %s", got, Claimed)
+	}
+}
