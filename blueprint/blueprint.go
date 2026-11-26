@@ -256,17 +256,17 @@ type TopTheorem struct {
 	Milestone string
 }
 
-// TopTheorems are the theorems of the trust report, spec 14.2.
+// TopTheorems are the theorems of the trust report, spec 14.2. The statement is empty when the table of spec 06.2 has no statement for the theorem: the toric cone theorem, toric flips and their termination, the lemma O-R4-1 and the toric case of S52 (Target T).
 var TopTheorems = []TopTheorem{
-	{"MinimalModel.Toric.coneTheorem", "MinimalModel.ToricConeTheorem", "S2"},
-	{"MinimalModel.shokurovLemma", "MinimalModel.ShokurovLemma", "S3"},
-	{"MinimalModel.Toric.flipExists", "MinimalModel.ToricFlipExists", "S4"},
-	{"MinimalModel.Toric.terminationOfFlips", "MinimalModel.ToricTermination", "S4"},
+	{"MinimalModel.Toric.coneTheorem", "", "S2"},
+	{"MinimalModel.shokurovLemma", "", "S3"},
+	{"MinimalModel.Toric.flipExists", "", "S4"},
+	{"MinimalModel.Toric.terminationOfFlips", "", "S4"},
 	{"MinimalModel.Toric.mmp", "MinimalModel.ToricMMP", "S4"},
 	{"MinimalModel.Surface.castelnuovo", "MinimalModel.Castelnuovo", "S5"},
-	{"MinimalModel.Surface.minimalModel", "MinimalModel.SurfaceMinimalModel", "S5"},
+	{"MinimalModel.Surface.minimalModel", "MinimalModel.SurfaceMMP", "S5"},
 	{"MinimalModel.Reductions.hanLiu", "MinimalModel.HanLiuReduction", "S5"},
-	{"MinimalModel.Toric.hanLiuEncACC", "MinimalModel.HanLiuEncACCToric", "S7"},
+	{"MinimalModel.Toric.hanLiuEncACC", "", "S7"},
 }
 
 // IsTopStatement reports whether a top theorem of spec 14.2 proves the statement.

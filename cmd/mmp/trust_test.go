@@ -22,12 +22,12 @@ func trustTree(t *testing.T, commit, extra string) string {
 	node := func(tag, body string) {
 		writeFile(t, filepath.Join(root, "blueprint", "nodes", tag+".yaml"), "tag: "+tag+"\nkind: theorem\ntitle: t\nstatement: s\ntier: T3\n"+body)
 	}
-	node("MM00000001", "lean:\n  statement: MinimalModel.ToricConeTheorem\n  proof: MinimalModel.Toric.coneTheorem\n")
+	node("MM00000001", "lean:\n  statement: MinimalModel.Castelnuovo\n  proof: MinimalModel.Surface.castelnuovo\n")
 	node("MM00000002", "lean:\n  statement: MinimalModel.LocalExistence\n  proof: MinimalModel.localExistence\n")
 	node("MM00000003", "hypotheses: [MM00000002]\nlean:\n  statement: MinimalModel.Mod\n  proof: MinimalModel.mod\n")
 	writeFile(t, filepath.Join(root, "records", "lean.json"), `{"repository":"https://github.com/tamnd/mmp-lean","commit":"`+commit+`","toolchain":"4.35.0","mathlib":"v4.35.0","built":"2026-11-25","decls":{
-"MinimalModel.ToricConeTheorem":{"kind":"def","axioms":`+cleanAxioms+`},
-"MinimalModel.Toric.coneTheorem":{"kind":"theorem","axioms":`+cleanAxioms+`},
+"MinimalModel.Castelnuovo":{"kind":"def","axioms":`+cleanAxioms+`},
+"MinimalModel.Surface.castelnuovo":{"kind":"theorem","axioms":`+cleanAxioms+`},
 "MinimalModel.LocalExistence":{"kind":"def","axioms":[]},
 "MinimalModel.localExistence":{"kind":"theorem","axioms":["propext","sorryAx"]},
 "MinimalModel.Mod":{"kind":"def","axioms":[]},
@@ -158,7 +158,7 @@ func TestTrust(t *testing.T) {
 
 func TestTrustTopTheorems(t *testing.T) {
 	root := trustTree(t, goodCommit, "")
-	writeFile(t, filepath.Join(root, "records", "fidelity.json"), `{"MinimalModel.ToricConeTheorem":{"class":"theorem","checks":{"F1":true,"F2":true,"F3":true,"F4":true,"F5":true},"pass":false}}`)
+	writeFile(t, filepath.Join(root, "records", "fidelity.json"), `{"MinimalModel.Castelnuovo":{"class":"theorem","checks":{"F1":true,"F2":true,"F3":true,"F4":true,"F5":true},"pass":false}}`)
 	var out, errb strings.Builder
 	if got := run([]string{"trust", "-content", root}, &out, &errb); got != 0 {
 		t.Fatalf("exit %d (%s)", got, errb.String())
@@ -169,16 +169,16 @@ func TestTrustTopTheorems(t *testing.T) {
 	}
 	found := false
 	for _, th := range f.Theorems {
-		if th.Theorem != "MinimalModel.Toric.coneTheorem" {
+		if th.Theorem != "MinimalModel.Surface.castelnuovo" {
 			continue
 		}
 		found = true
 		if th.Node != "MM00000001" || th.Status != "proved" || th.Checks[0].State != "yes" || th.Checks[1].State != "open" {
-			t.Errorf("the row of coneTheorem is %+v", th)
+			t.Errorf("the row of castelnuovo is %+v", th)
 		}
 	}
-	if !found || !strings.Contains(out.String(), "MinimalModel.Toric.coneTheorem  S2  MM00000001 proved  Q2 yes, Q5 open") {
-		t.Errorf("no row for coneTheorem:\n%s", out.String())
+	if !found || !strings.Contains(out.String(), "MinimalModel.Surface.castelnuovo  S5  MM00000001 proved  Q2 yes, Q5 open") {
+		t.Errorf("no row for castelnuovo:\n%s", out.String())
 	}
 	if !strings.Contains(out.String(), "MM00000003 takes MM00000002") {
 		t.Errorf("Q6 does not list the hypothesis:\n%s", out.String())

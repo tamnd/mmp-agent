@@ -13,3 +13,7 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 - The `claim` block of spec 07.14 in a paper record, with the fields `first_seen`, `checked_part`, `unrefereed_inputs`, `authors_contacted` and `lean_result`. `mmp check` checks the dates and the value of `lean_result`, and it refuses the expert status `accepted` in a record with a claim block.
 - The pages `/statements/` and `/audit/` in the menu of the site.
 - The lab experiment E2 of spec 13.3: the mlds of the isolated cyclic quotient germs of dimension 3 and 4. In dimension 3 it checks the terminal lemma and the mld 1 + 1/r of a terminal germ.
+
+### Fixed
+
+- The statements of the top theorems match the table of spec 06.2. The theorem `MinimalModel.Surface.minimalModel` proves `MinimalModel.SurfaceMMP` (S12). The toric cone theorem, toric flips, their termination, the lemma O-R4-1 and the toric case of S52 have no statement in spec 06.2, so their statement is empty.
