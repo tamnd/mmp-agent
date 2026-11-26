@@ -121,15 +121,17 @@ type ledgerEntry struct {
 
 func runAgent(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
-		return fmt.Errorf("%w: agent needs a subcommand: run or report", errUsage)
+		return fmt.Errorf("%w: agent needs a subcommand: run, report or cost", errUsage)
 	}
 	switch args[0] {
 	case "run":
 		return agentRun(args[1:], stdout, stderr)
 	case "report":
 		return agentReport(args[1:], stdout, stderr)
+	case "cost":
+		return agentCost(args[1:], stdout, stderr)
 	}
-	return fmt.Errorf("%w: unknown agent subcommand %q; use run or report", errUsage, args[0])
+	return fmt.Errorf("%w: unknown agent subcommand %q; use run, report or cost", errUsage, args[0])
 }
 
 // loadRuns reads records/runs/<id>/run.json, sorted by id. A missing directory has no runs.

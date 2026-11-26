@@ -155,6 +155,47 @@ func inWeek(date string, from, to time.Time) bool {
 	return err == nil && !d.Before(from) && !d.After(to)
 }
 
+// spendSum is the spend of the ledger in a window of dates.
+type spendSum struct {
+	calls   int
+	total   float64
+	byRole  map[string]float64
+	byRoute map[string]float64 // the route of the run; unknown when the ledger names no run record
+}
+
+// sumSpend sums the model calls of the ledger from the date from to the date to, by role and by route. The route of a call is the route of its run.
+func sumSpend(ledger []ledgerEntry, runs []*runRecord, from, to time.Time) spendSum {
+	routeOf := map[string]string{}
+	for _, r := range runs {
+		routeOf[r.ID] = r.Route
+	}
+	sp := spendSum{byRole: map[string]float64{}, byRoute: map[string]float64{}}
+	for _, e := range ledger {
+		if !inWeek(e.Date, from, to) {
+			continue
+		}
+		sp.calls++
+		sp.total += e.Cost
+		sp.byRole[e.Role] += e.Cost
+		r := routeOf[e.Run]
+		if r == "" {
+			r = "unknown"
+		}
+		sp.byRoute[r] += e.Cost
+	}
+	return sp
+}
+
+// sortedKeys returns the keys of a map, sorted.
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func agentReport(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("mmp agent report", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -367,43 +408,20 @@ func reportText(p *blueprint.Project, week string, from, to time.Time, today str
 
 	// The spend.
 	b.WriteString("## Spend\n\n")
-	routeOf := map[string]string{}
-	for _, r := range runs {
-		routeOf[r.ID] = r.Route
-	}
-	byRole, byRouteSpend := map[string]float64{}, map[string]float64{}
-	total, calls := 0.0, 0
-	for _, e := range ledger {
-		if !inWeek(e.Date, from, to) {
-			continue
-		}
-		calls++
-		total += e.Cost
-		byRole[e.Role] += e.Cost
-		r := routeOf[e.Run]
-		if r == "" {
-			r = "unknown"
-		}
-		byRouteSpend[r] += e.Cost
-	}
-	if calls == 0 {
+	sp := sumSpend(ledger, runs, from, to)
+	if sp.calls == 0 {
 		b.WriteString("The ledger agent/ledger.jsonl has no model call of this week, so the spend is 0.00 dollars.\n\n")
 	} else {
-		fmt.Fprintf(&b, "The ledger has %s of this week, for %.2f dollars.\n\n", plural(calls, "model call"), total)
+		fmt.Fprintf(&b, "The ledger has %s of this week, for %.2f dollars.\n\n", plural(sp.calls, "model call"), sp.total)
 		for _, kv := range []struct {
 			name string
 			m    map[string]float64
-		}{{"By role", byRole}, {"By route", byRouteSpend}} {
-			var keys []string
-			for k := range kv.m {
-				keys = append(keys, k)
+		}{{"By role", sp.byRole}, {"By route", sp.byRoute}} {
+			var parts []string
+			for _, k := range sortedKeys(kv.m) {
+				parts = append(parts, fmt.Sprintf("%s %.2f", k, kv.m[k]))
 			}
-			sort.Strings(keys)
-			var sp []string
-			for _, k := range keys {
-				sp = append(sp, fmt.Sprintf("%s %.2f", k, kv.m[k]))
-			}
-			fmt.Fprintf(&b, "%s, in dollars: %s.\n\n", kv.name, strings.Join(sp, ", "))
+			fmt.Fprintf(&b, "%s, in dollars: %s.\n\n", kv.name, strings.Join(parts, ", "))
 		}
 	}
 

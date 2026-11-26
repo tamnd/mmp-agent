@@ -4,6 +4,10 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ## Unreleased
 
+### Added
+
+- `mmp agent cost` measures the cost per proved node and per audited definition of milestone S2 from the ledger, the run records, the map and `records/audit.json`. It shows the spend by role and by route, the spend on nodes that are not proved yet, and the calls whose run has no record. With `-write` it writes `reports/cost-<to>.md`.
+
 ## v0.0.3 - 2026-11-26
 
 ## v0.0.2 - 2026-11-26
