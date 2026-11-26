@@ -44,7 +44,6 @@ type SGerm struct {
 	Lemma        *bool   `json:"terminal_lemma,omitempty"`
 
 	dual dual // the normal form of the dual lattice, for the germs of the enumeration
-	box  int  // the nonzero points of the box of age at most 1, primitive or not, as the family cyclic counts them
 }
 
 // SIndex is the count of the simplicial germs of one index.
@@ -78,12 +77,10 @@ type SResult struct {
 	TermFails  []SGerm
 	LemmaFails []SGerm
 	NoTerminal []int
-	// The comparison with the family cyclic up to CompareIndex. CompareFails says what differs. Bug are the cyclic germs where the count of the family cyclic, which counts each point of the box of age at most 1, is more than the count of the divisors; BugEnc are those where enc changes.
+	// The comparison with the family cyclic up to CompareIndex. CompareFails says what differs.
 	CompareIndex  int
 	CompareGerms  int
 	CompareFails  []string
-	Bug, BugEnc   int
-	BugExample    string
 	IsolatedNotCy int // isolated germs with G not cyclic
 	Hand          []HandCase
 	Values        []string // the distinct mlds at the fixed point below 1
@@ -233,7 +230,6 @@ func evalGerm(r int, elems [][3]int, in func([3]int) bool, us []int, m int) SGer
 			}
 		}
 		if s <= r {
-			g.box++
 			if primitive(x, in) {
 				g.AtMost1++
 				if zeros == 0 {
@@ -624,17 +620,8 @@ func (r *SResult) compare(cyc []SGerm, upto int) {
 				found = found || fmt.Sprint(m) == fmt.Sprint(want)
 			}
 		}
-		if g.MldNum != o.MldNum || g.MldDen != o.MldDen || g.Terminal != o.Terminal || g.Canon != o.Canon || *g.Lemma != *o.Lemma || g.box != o.AtMost1 || !found {
+		if g.MldNum != o.MldNum || g.MldDen != o.MldDen || g.Terminal != o.Terminal || g.Canon != o.Canon || *g.Lemma != *o.Lemma || g.AtMost1 != o.AtMost1 || !found {
 			r.CompareFails = append(r.CompareFails, fmt.Sprintf("%s: the family cyclic gives %+v, the family simplicial %s", k, o, describe(g)))
-		}
-		if g.AtMost1 != o.AtMost1 {
-			r.Bug++
-			if r.BugExample == "" {
-				r.BugExample = fmt.Sprintf("%s has %d points of the box of age at most 1, and %d primitive points", k, o.AtMost1, g.AtMost1)
-			}
-			if g.Enc != (o.AtMost1 == 1) {
-				r.BugEnc++
-			}
 		}
 	}
 }
@@ -731,10 +718,7 @@ func e2sSummary(s *Spec, rec *Record, r SResult) string {
 	fmt.Fprintf(&b, "- Terminal germs. A terminal simplicial toric 3-fold germ is cyclic of type 1/r(1, -1, a) with gcd(a, r) = 1 (White-Frumkin, Morrison-Stevens; the terminal lemma), and its mld is 1 + 1/r. Of the %d terminal germs, %d are not cyclic, isolated, of this type and of this mld.\n", r.Total.Terminal, len(r.TermFails))
 	fmt.Fprintf(&b, "- The terminal lemma on the cyclic isolated germs, both ways: %d disagree.\n", len(r.LemmaFails))
 	fmt.Fprintf(&b, "- An isolated germ of dimension 3 has a cyclic group: a group (Z/p)^2 in (Z/p)^3 meets each coordinate plane. %d isolated germs are not cyclic. So no germ with a group that is not cyclic is terminal.\n", r.IsolatedNotCy)
-	fmt.Fprintf(&b, "- The family cyclic. The %d cyclic isolated germs with r <= %d are compared with a run of the family cyclic, germ for germ: the weights, the mld, a minimizer, terminal, canonical and the terminal lemma. %d differ.\n", r.CompareGerms, r.CompareIndex, len(r.CompareFails))
-	if r.Bug > 0 {
-		fmt.Fprintf(&b, "- The family cyclic counts at_most_one as the points of the box of age at most 1, and some of them are not primitive, so they are not divisors. %d of the %d germs have a smaller count here; for example, %s. For %d of them enc changes. This run counts the primitive points only; the family cyclic keeps its old count.\n", r.Bug, r.CompareGerms, r.BugExample, r.BugEnc)
-	}
+	fmt.Fprintf(&b, "- The family cyclic. The %d cyclic isolated germs with r <= %d are compared with a run of the family cyclic, germ for germ: the weights, the mld, a minimizer, terminal, canonical, the terminal lemma and the count of the divisors of log discrepancy at most 1. %d differ.\n", r.CompareGerms, r.CompareIndex, len(r.CompareFails))
 	b.WriteString("\nThe cases by hand, computed by the closure of the generators and found once in the enumeration:\n\n| germ | by hand | the run | found once |\n|---|---|---|---|\n")
 	for _, h := range r.Hand {
 		got := "the same"

@@ -15,6 +15,7 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ### Fixed
 
+- The family `cyclic` of E2 counts `at_most_one` as the primitive points of the box of age at most 1, the exceptional divisors of log discrepancy at most 1. It counted every point of the box, and a point such as (2, 2, 2)/7 of 1/7(1, 1, 1) is twice a lattice point and is not a divisor. So `enc` changes for some germs. The family `simplicial` now checks this count against the family `cyclic` germ for germ, and its summary no longer has the note on the old count.
 - The trust report finds the toric cone theorem. Its top theorem is `MinimalModel.Toric.toricConeTheorem`, which proves the pinned statement `MinimalModel.Toric.ToricConeTheorem`. The name `MinimalModel.Toric.coneTheorem` of spec 14.2 does not exist in mmp-lean.
 
 ## v0.0.4 - 2026-11-26
