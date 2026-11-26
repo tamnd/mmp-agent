@@ -42,7 +42,7 @@ func commands() []command {
 		{name: "claim", summary: "add, list, show or plan a fresh claim of route R1 in claims/", run: runClaim},
 		{name: "lab", summary: "list, run or show the experiments of the computation lab", run: runLab},
 		{name: "queue", summary: "print the work queue of a role, with the reason for each rank", run: runQueue},
-		{name: "agent", summary: "plan and run one role of the agent within the budget, or write the weekly report", run: runAgent},
+		{name: "agent", summary: "plan and run one role of the agent within the budget, write the weekly report, or measure the cost per proved node and per audited definition", run: runAgent},
 	}
 }
 
