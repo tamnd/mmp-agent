@@ -4,6 +4,8 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ## Unreleased
 
+## v0.0.3 - 2026-11-26
+
 ## v0.0.2 - 2026-11-26
 
 ### Fixed
