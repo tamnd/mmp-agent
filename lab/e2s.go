@@ -14,8 +14,8 @@ import (
 //
 // The run lists the lattices by their duals. The dual L = N^* is a sublattice of Z^3 of index r, and its Hermite normal form has the rows (a, b, c), (0, d, e), (0, 0, f) with a d f = r, 0 <= b < d and 0 <= c, e < f. The ray e_1 is primitive exactly when a = 1, the ray e_2 when gcd(b, d) = 1, and the ray e_3 when gcd(c, e, f) = 1. The germ is kept when its normal form is the smallest of the normal forms of the six permutations of the coordinates.
 
-// e2MaxIndexSimplicial3 keeps a run of the family simplicial inside the budget of spec 13.6 on one machine. The work grows like r^4: on a laptop with 10 cores and other load, index 600 took 4.5 min and index 800 7 min, so index 1000 takes about 20 min.
-const e2MaxIndexSimplicial3 = 1000
+// e2MaxIndexSimplicial3 keeps a run of the family simplicial inside the budget of spec 13.6 on one machine. The work grows like r^4: on a laptop with 10 cores and other load, index 600 took 4.5 min, index 800 7 min and index 1000 12.4 min, so index 1200 takes about 26 min.
+const e2MaxIndexSimplicial3 = 1200
 
 // e2CompareIndex is the largest index where a run of the family simplicial compares its cyclic isolated germs with the family cyclic.
 const e2CompareIndex = 40
