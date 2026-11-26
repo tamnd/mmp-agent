@@ -17,3 +17,4 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 ### Fixed
 
 - The statements of the top theorems match the table of spec 06.2. The theorem `MinimalModel.Surface.minimalModel` proves `MinimalModel.SurfaceMMP` (S12). The toric cone theorem, toric flips, their termination, the lemma O-R4-1 and the toric case of S52 have no statement in spec 06.2, so their statement is empty.
+- `mmp lab run` does not write the name of the machine in the record. The default host is the operating system and the architecture, for example `darwin/arm64`.

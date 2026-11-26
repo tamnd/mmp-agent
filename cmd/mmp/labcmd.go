@@ -117,7 +117,7 @@ func labRun(args []string, stdout, stderr io.Writer) error {
 	content := fs.String("content", ".", "the root of the content repository, for an experiment id and for the check of the node")
 	runs := fs.String("runs", "", "the directory of the runs (default: lab/runs next to the lab/specs of the spec)")
 	force := fs.Bool("force", false, "replace a run with the same id")
-	host := fs.String("host", "", "the name of the host in the record (default: the host name)")
+	host := fs.String("host", "", "the name of the host in the record (default: the operating system and the architecture, so that the record does not show the name of the machine)")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: mmp lab run [flags] <spec.yaml | E2>")
 		fs.PrintDefaults()
@@ -149,7 +149,7 @@ func labRun(args []string, stdout, stderr io.Writer) error {
 		}
 	}
 	if *host == "" {
-		*host, _ = os.Hostname()
+		*host = runtime.GOOS + "/" + runtime.GOARCH
 	}
 	commit, modified := toolInfo()
 	rec, err := lab.Run(spec, lab.Options{Runs: *runs, Force: *force, Host: *host, ToolVersion: Version, Commit: commit, Modified: modified, Go: runtime.Version()})
