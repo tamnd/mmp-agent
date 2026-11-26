@@ -135,9 +135,9 @@ func TestHandCases(t *testing.T) {
 	if _, err := GermOfGens(4, [][3]int{{2, 2, 0}}); err == nil {
 		t.Error("a group of order 2 is accepted as a group of order 4")
 	}
-	// 1/7(1,1,1): the box point (2,2,2)/7 has age 6/7 but it is twice (1,1,1)/7, so the germ has one divisor of log discrepancy at most 1 and is enc. The family cyclic counts two.
+	// 1/7(1,1,1): the box point (2,2,2)/7 has age 6/7 but it is twice (1,1,1)/7, so the germ has one divisor of log discrepancy at most 1 and is enc. The family cyclic counts one too.
 	g, _ = GermOfGens(7, [][3]int{{1, 1, 1}})
-	if g.AtMost1 != 1 || g.box != 2 || !g.EncHL {
+	if g.AtMost1 != 1 || !g.EncHL {
 		t.Errorf("1/7(1,1,1) is %+v", g)
 	}
 }
@@ -159,9 +159,6 @@ func TestSimplicialAgainstCyclic(t *testing.T) {
 		if x.Index != o.Index || x.Terminal != o.Terminal || x.Isolated != o.Germs {
 			t.Errorf("index %d: %+v, the family cyclic %+v", x.Index, x, o)
 		}
-	}
-	if r.Bug == 0 || !strings.HasPrefix(r.BugExample, "1/6[1 1 1]") {
-		t.Errorf("the run does not see the points of the box that are not primitive: %d %q", r.Bug, r.BugExample)
 	}
 	for _, g := range r.Germs {
 		if g.Index > 10 {

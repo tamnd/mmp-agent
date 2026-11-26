@@ -210,3 +210,16 @@ func TestRun(t *testing.T) {
 		t.Errorf("a missing directory gives %v, %v", runs, err)
 	}
 }
+
+// The family cyclic counts the primitive points of the box only. 1/7(1,1,1) has the points (1,1,1)/7 and (2,2,2)/7 of age at most 1, and the second is twice the first. 1/6(1,1,1) has (1,1,1)/6 and (2,2,2)/6 of age 1. 1/5(1,2,3) has (1,2,3)/5 of age 6/5 and (2,4,1)/5 of age 7/5, so none, and 1/7(1,2,4) has three primitive points of age 1. 1/2(1,1,1) has one point, of age 3/2.
+func TestCyclicCountsPrimitivePoints(t *testing.T) {
+	for _, c := range []struct {
+		r    int
+		w    []int
+		want int
+	}{{7, []int{1, 1, 1}, 1}, {6, []int{1, 1, 1}, 1}, {5, []int{1, 2, 3}, 0}, {7, []int{1, 2, 4}, 3}, {2, []int{1, 1, 1}, 0}} {
+		if g := germ(c.w, c.r); g.AtMost1 != c.want {
+			t.Errorf("1/%d%v: %d divisors of log discrepancy at most 1, want %d", c.r, c.w, g.AtMost1, c.want)
+		}
+	}
+}

@@ -65,7 +65,7 @@ type Germ struct {
 	MinAgeK  int   `json:"min_age_k"`                // the smallest k of minimal age, or 0 when the mld is n
 	Terminal bool  `json:"terminal"`                 // each age is more than 1
 	Canon    bool  `json:"canonical"`                // each age is at least 1
-	AtMost1  int   `json:"at_most_one"`              // the number of box points of age at most 1: the exceptional divisors of log discrepancy at most 1
+	AtMost1  int   `json:"at_most_one"`              // the number of primitive box points of age at most 1: the exceptional divisors of log discrepancy at most 1
 	Lemma    *bool `json:"terminal_lemma,omitempty"` // dimension 3: two weights add to 0 mod r
 }
 
@@ -175,7 +175,9 @@ func germ(w []int, r int) Germ {
 		}
 		if age <= r {
 			g.Terminal = false
-			g.AtMost1++
+			if cyclicPrimitive(w, r, k) {
+				g.AtMost1++
+			}
 		}
 		if age < r {
 			g.Canon = false
@@ -188,6 +190,40 @@ func germ(w []int, r int) Germ {
 		g.Lemma = &lemma
 	}
 	return g
+}
+
+// cyclicPrimitive says whether the box point k (a_1, ..., a_n)/r is a primitive vector of the lattice Z^n + Z (a_1, ..., a_n)/r. A point that is not primitive, such as (2, 2, 2)/7 of 1/7(1, 1, 1), is a multiple of a lattice point and is not a divisor. The point x/r, with x_i = k a_i mod r, is not primitive exactly when x/p is again a box point for a prime p that divides each x_i, that is, when x/p = k' (a_1, ..., a_n) mod r for some k'. Because the germ is isolated, a_1 is a unit mod r, so k' is x_1/p times the inverse of a_1.
+func cyclicPrimitive(w []int, r, k int) bool {
+	x := make([]int, len(w))
+	c := 0
+	for i, a := range w {
+		x[i] = k * a % r
+		c = gcd(c, x[i])
+	}
+	inv := 0
+	for u := 1; u < r; u++ {
+		if w[0]*u%r == 1 {
+			inv = u
+			break
+		}
+	}
+	for p := 2; p <= c; p++ {
+		if c%p != 0 {
+			continue
+		}
+		for c%p == 0 {
+			c /= p
+		}
+		kp := x[0] / p * inv % r
+		in := true
+		for i, a := range w {
+			in = in && kp*a%r == x[i]/p
+		}
+		if in {
+			return false
+		}
+	}
+	return true
 }
 
 // RunE2 enumerates the germs of the family cyclic and checks the predictions. In dimension 3 the predictions are the terminal lemma of Morrison-Stevens (an isolated cyclic quotient 3-fold germ is terminal if and only if two of its weights add to 0 mod r) and the mld 1 + 1/r of a terminal germ. Dimension 4 has no prediction: the run records the counts and the values for Target T (spec 04.12).
