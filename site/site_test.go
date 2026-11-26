@@ -87,3 +87,26 @@ func TestBuildStopsOnABadMap(t *testing.T) {
 		t.Fatal("a map with a bad link builds")
 	}
 }
+
+func TestAuditPage(t *testing.T) {
+	root := content(t)
+	put(t, root, "records/audit.json", `{"source": "AxiomMath/MMP", "commit": "1f9ade3670", "steps": {"A1": "done", "A2": "in progress"}, "findings": {"3": 2}, "passed": false}`)
+	put(t, root, "audit/axiom-mmp/A1-build.md", "# A1\n")
+	out := filepath.Join(t.TempDir(), "public")
+	if _, err := Build(context.Background(), Options{Content: root, Out: out, Commit: "abc", Date: "2026-11-26"}); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(out, "audit", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(data)
+	for _, want := range []string{`<span class="mark yes">done</span></td><th scope="row">A1</th>`, "audit/axiom-mmp/A1-build.md", `<span class="mark open">in progress</span></td><th scope="row">A2</th>`, `<th scope="row">3</th><td>2</td>`, "api/audit.json"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the audit page has no %q", want)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(out, "api", "audit.json")); err != nil {
+		t.Error(err)
+	}
+}

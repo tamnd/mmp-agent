@@ -335,6 +335,59 @@ type Audit struct {
 // AuditSteps are the steps of the audit, spec 04.3.
 var AuditSteps = []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"}
 
+// AuditStates are the states of an audit step in records/audit.json.
+var AuditStates = []string{"done", "in progress", "not started"}
+
+// AuditSeverities are the severities of an audit finding, spec 14.5. Severity 1 is the most serious.
+var AuditSeverities = []string{"1", "2", "3", "4"}
+
+// AuditRecord is an exit record of an audit step: a file of audit/<name>/ whose name starts with the step, for example A1-inventory.md.
+type AuditRecord struct {
+	Step string `json:"step"`
+	Path string `json:"path"` // the path from the root of the content repository
+}
+
+// AuditRecords returns the exit records in the directories of audit/, sorted by step and then by path.
+func AuditRecords(root string) ([]AuditRecord, error) {
+	dirs, err := os.ReadDir(filepath.Join(root, "audit"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var out []AuditRecord
+	for _, d := range dirs {
+		if !d.IsDir() {
+			continue
+		}
+		files, err := os.ReadDir(filepath.Join(root, "audit", d.Name()))
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range files {
+			if f.IsDir() {
+				continue
+			}
+			for _, s := range AuditSteps {
+				if strings.HasPrefix(f.Name(), s+"-") || strings.HasPrefix(f.Name(), s+".") {
+					out = append(out, AuditRecord{Step: s, Path: "audit/" + d.Name() + "/" + f.Name()})
+				}
+			}
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Step != out[j].Step {
+			return out[i].Step < out[j].Step
+		}
+		return out[i].Path < out[j].Path
+	})
+	return out, nil
+}
+
+// SeriousFindings is the number of open findings of severity 1 or 2.
+func (a *Audit) SeriousFindings() int { return a.Findings["1"] + a.Findings["2"] }
+
 // LeanRecord is records/lean.json: what the build of mmp-lean found.
 type LeanRecord struct {
 	Repository string          `json:"repository"`

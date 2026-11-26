@@ -35,6 +35,7 @@ func commands() []command {
 		{name: "index", summary: "check the record of the Lean build and copy it to records/lean.json", run: runIndex},
 		{name: "site", summary: "build, check or serve the site", run: runSite},
 		{name: "trust", summary: "check the axioms of the Lean record, read the kernel replay, and write records/trust.json", run: runTrust},
+		{name: "audit", summary: "print or set the state of the audit of AxiomMath/MMP in records/audit.json, or run the axiom check of step A2", run: runAudit},
 		{name: "fidelity", summary: "list, show or set the fidelity checks F1 to F7 of a statement in records/fidelity.json", run: runFidelity},
 		{name: "port", summary: "check the ported Lean files against manifests/ported.yaml (add and diff come in milestone S1)", run: runPort},
 		{name: "paper", summary: "add, list or show a paper record of papers/", run: runPaper},

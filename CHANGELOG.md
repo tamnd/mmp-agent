@@ -14,6 +14,10 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 - The pages `/statements/` and `/audit/` in the menu of the site.
 - The lab experiment E2 of spec 13.3: the mlds of the isolated cyclic quotient germs of dimension 3 and 4. In dimension 3 it checks the terminal lemma and the mld 1 + 1/r of a terminal germ.
 
+- `mmp audit status`, `mmp audit step` and `mmp audit finding` read and write `records/audit.json`, the state of the audit of spec 04.3. A step is `done` only when it has an exit record in `audit/`.
+- `mmp audit axioms` runs `#print axioms` on the seven declarations of step A2 in a built checkout of AxiomMath/MMP and writes the axiom report.
+- The page `/audit/` shows the steps A1 to A8, their exit records and the open findings from `records/audit.json`, and the site writes `/api/audit.json`.
+
 ### Fixed
 
 - The statements of the top theorems match the table of spec 06.2. The theorem `MinimalModel.Surface.minimalModel` proves `MinimalModel.SurfaceMMP` (S12). The toric cone theorem, toric flips, their termination, the lemma O-R4-1 and the toric case of S52 have no statement in spec 06.2, so their statement is empty.
