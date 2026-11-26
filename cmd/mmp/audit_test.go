@@ -104,7 +104,7 @@ func TestAuditAxioms(t *testing.T) {
 	var file string
 	old := runLean
 	defer func() { runLean = old }()
-	runLean = func(dir, f string) ([]byte, error) {
+	runLean = func(_, f string) ([]byte, error) {
 		data, err := os.ReadFile(f)
 		if err != nil {
 			return nil, err
