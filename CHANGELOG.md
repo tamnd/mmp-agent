@@ -4,6 +4,8 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ## Unreleased
 
+## v0.0.1 - 2026-11-26
+
 ### Added
 
 - The first version of the toolchain `mmp`, from the toolchain of the sibling project langlands. It has the commands `check`, `status`, `index`, `port check`, `fidelity`, `trust`, `paper`, `lab`, `claim`, `queue`, `agent`, `map`, `site build` and `site serve`.
