@@ -17,14 +17,14 @@ func contentTree(t *testing.T, fidelity string) string {
 	node := func(tag, kind, stmt, extra string) {
 		writeFile(t, filepath.Join(root, "blueprint", "nodes", tag+".yaml"), "tag: "+tag+"\nkind: "+kind+"\ntitle: t\nstatement: s\ntier: T3\nlean:\n  statement: "+stmt+"\n"+extra)
 	}
-	node("MM00000001", "theorem", "MinimalModel.ToricConeTheorem", "")
+	node("MM00000001", "theorem", "MinimalModel.Castelnuovo", "")
 	node("MM00000002", "theorem", "MinimalModel.LocalExistence", "")
 	node("MM00000003", "theorem", "MinimalModel.Broken", "")
 	node("MM00000004", "conjecture", "MinimalModel.Open", "")
 	node("MM00000005", "definition", "MinimalModel.WeilGroup", "")
 	node("MM00000006", "theorem", "MinimalModel.Axiom", "")
 	writeFile(t, filepath.Join(root, "records", "lean.json"), `{"repository":"https://github.com/tamnd/mmp-lean","commit":"`+goodCommit+`","toolchain":"4.35.0","decls":{
-"MinimalModel.ToricConeTheorem":{"kind":"def","axioms":["propext","Classical.choice","Quot.sound"]},
+"MinimalModel.Castelnuovo":{"kind":"def","axioms":["propext","Classical.choice","Quot.sound"]},
 "MinimalModel.LocalExistence":{"kind":"def","axioms":["propext"]},
 "MinimalModel.Broken":{"kind":"def","axioms":["sorryAx"]},
 "MinimalModel.Open":{"kind":"def","axioms":[]},
@@ -60,9 +60,9 @@ func TestFidelityMissing(t *testing.T) {
 	}{
 		{"theorem F1 to F5", "MinimalModel.LocalExistence", blueprint.Fidelity{Class: "theorem", Checks: map[string]bool{"F1": true, "F2": true, "F3": true, "F4": true, "F5": true}}, ""},
 		{"theorem without F4", "MinimalModel.LocalExistence", blueprint.Fidelity{Class: "theorem", Checks: map[string]bool{"F1": true, "F2": true, "F3": true, "F5": true}}, "F4 is not passed"},
-		{"top theorem needs F6", "MinimalModel.ToricConeTheorem", blueprint.Fidelity{Class: "theorem", Checks: map[string]bool{"F1": true, "F2": true, "F3": true, "F4": true, "F5": true}}, "F6 is not passed"},
-		{"F6 needs two reviewers", "MinimalModel.ToricConeTheorem", blueprint.Fidelity{Class: "theorem", Checks: all, Reviewers: two[:1]}, "two reviewers"},
-		{"top theorem with F6", "MinimalModel.ToricConeTheorem", blueprint.Fidelity{Class: "theorem", Checks: all, Reviewers: two}, ""},
+		{"top theorem needs F6", "MinimalModel.Castelnuovo", blueprint.Fidelity{Class: "theorem", Checks: map[string]bool{"F1": true, "F2": true, "F3": true, "F4": true, "F5": true}}, "F6 is not passed"},
+		{"F6 needs two reviewers", "MinimalModel.Castelnuovo", blueprint.Fidelity{Class: "theorem", Checks: all, Reviewers: two[:1]}, "two reviewers"},
+		{"top theorem with F6", "MinimalModel.Castelnuovo", blueprint.Fidelity{Class: "theorem", Checks: all, Reviewers: two}, ""},
 		{"open needs F7", "MinimalModel.Open", blueprint.Fidelity{Class: "open", Checks: map[string]bool{"F1": true, "F2": true, "F3": true, "F4": true, "F5": true, "F6": true}, Reviewers: two}, "F7 is not passed"},
 		{"open needs two groups", "MinimalModel.Open", blueprint.Fidelity{Class: "open", Checks: all, Reviewers: two}, "two groups"},
 		{"open with two groups", "MinimalModel.Open", blueprint.Fidelity{Class: "open", Checks: all, Reviewers: []blueprint.Reviewer{two[0], {Name: "B", Group: "lifting", Date: "2026-12-02"}}}, ""},
@@ -85,7 +85,7 @@ func TestFidelityF1(t *testing.T) {
 		want bool
 		why  string
 	}{
-		{"MinimalModel.ToricConeTheorem", true, "standard axioms only"},
+		{"MinimalModel.Castelnuovo", true, "standard axioms only"},
 		{"MinimalModel.LocalExistence", true, "standard axioms only"},
 		{"MinimalModel.Broken", false, "sorry"},
 		{"MinimalModel.Axiom", false, "MinimalModel.myAxiom"},
@@ -112,7 +112,7 @@ func TestFidelityCommands(t *testing.T) {
 		{"list", []string{"list"}, 0, "MinimalModel.LocalExistence  theorem  not passed", nil},
 		{"list has no definition", []string{"list"}, 0, "5 statements", nil},
 		{"show by tag", []string{"show", "MM00000002"}, 0, "needs: F1, F2, F3, F4, F5", nil},
-		{"show a top statement", []string{"show", "MinimalModel.ToricConeTheorem"}, 0, "also needs F6", nil},
+		{"show a top statement", []string{"show", "MinimalModel.Castelnuovo"}, 0, "also needs F6", nil},
 		{"show a definition", []string{"show", "MM00000005"}, 1, "", nil},
 		{"show an unknown name", []string{"show", "MinimalModel.Nothing"}, 1, "", nil},
 		{"set F5 passes", []string{"set", "MinimalModel.LocalExistence", "F5=true"}, 0, "pass: yes", func(t *testing.T, m map[string]blueprint.Fidelity) {
@@ -124,8 +124,8 @@ func TestFidelityCommands(t *testing.T) {
 		{"set F1 is refused", []string{"set", "MinimalModel.LocalExistence", "F1=true"}, 2, "", nil},
 		{"set a bad value", []string{"set", "MinimalModel.LocalExistence", "F5=maybe"}, 2, "", nil},
 		{"set an unknown check", []string{"set", "MinimalModel.LocalExistence", "F9=true"}, 2, "", nil},
-		{"set F6 without reviewers", []string{"set", "MinimalModel.ToricConeTheorem", "F6=true"}, 1, "", nil},
-		{"set a bad reviewer", []string{"set", "-reviewer", "A", "MinimalModel.ToricConeTheorem", "F6=true"}, 2, "", nil},
+		{"set F6 without reviewers", []string{"set", "MinimalModel.Castelnuovo", "F6=true"}, 1, "", nil},
+		{"set a bad reviewer", []string{"set", "-reviewer", "A", "MinimalModel.Castelnuovo", "F6=true"}, 2, "", nil},
 		{"set a bad class", []string{"set", "-class", "guess", "MinimalModel.LocalExistence"}, 2, "", nil},
 		{"set a new entry of a conjecture", []string{"set", "MM00000004", "F2=true"}, 0, "class: open", func(t *testing.T, m map[string]blueprint.Fidelity) {
 			f := m["MinimalModel.Open"]
@@ -138,8 +138,8 @@ func TestFidelityCommands(t *testing.T) {
 				t.Errorf("the entry is %+v", f)
 			}
 		}},
-		{"set F6 with reviewers", []string{"set", "-reviewer", "A|toric|2026-12-01", "-reviewer", "B|termination|2026-12-02", "MinimalModel.ToricConeTheorem", "F2=true", "F3=true", "F4=true", "F5=true", "F6=true"}, 0, "pass: yes", func(t *testing.T, m map[string]blueprint.Fidelity) {
-			if f := m["MinimalModel.ToricConeTheorem"]; !f.Pass || len(f.Reviewers) != 2 {
+		{"set F6 with reviewers", []string{"set", "-reviewer", "A|toric|2026-12-01", "-reviewer", "B|termination|2026-12-02", "MinimalModel.Castelnuovo", "F2=true", "F3=true", "F4=true", "F5=true", "F6=true"}, 0, "pass: yes", func(t *testing.T, m map[string]blueprint.Fidelity) {
+			if f := m["MinimalModel.Castelnuovo"]; !f.Pass || len(f.Reviewers) != 2 {
 				t.Errorf("the entry is %+v", f)
 			}
 		}},
