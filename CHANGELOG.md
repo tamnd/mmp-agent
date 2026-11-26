@@ -4,6 +4,8 @@ All changes that a user can see are in this file. The format follows Keep a Chan
 
 ## Unreleased
 
+## v0.0.2 - 2026-11-26
+
 ### Fixed
 
 - A node of kind `claim` with no Lean statement has the status `unstated`, as spec 08 says. Only a claim with a Lean statement is `claimed`. In tamnd/mmp the nodes of S27, S47 and S57 move from `claimed` to `unstated`.
