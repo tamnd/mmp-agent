@@ -256,9 +256,9 @@ type TopTheorem struct {
 	Milestone string
 }
 
-// TopTheorems are the theorems of the trust report, spec 14.2. The statement is empty when the table of spec 06.2 has no statement for the theorem: the toric cone theorem, toric flips and their termination, the lemma O-R4-1 and the toric case of S52 (Target T).
+// TopTheorems are the theorems of the trust report, spec 14.2. The statement is empty when the table of spec 06.2 has no statement for the theorem: toric flips and their termination, the lemma O-R4-1 and the toric case of S52 (Target T). The toric cone theorem proves the pinned statement of mmp-lean, MinimalModel/Statements/Toric.lean.
 var TopTheorems = []TopTheorem{
-	{"MinimalModel.Toric.coneTheorem", "", "S2"},
+	{"MinimalModel.Toric.toricConeTheorem", "MinimalModel.Toric.ToricConeTheorem", "S2"},
 	{"MinimalModel.shokurovLemma", "", "S3"},
 	{"MinimalModel.Toric.flipExists", "", "S4"},
 	{"MinimalModel.Toric.terminationOfFlips", "", "S4"},
