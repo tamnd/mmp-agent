@@ -30,7 +30,7 @@ type Experiment struct {
 // Experiments are the experiments of spec 13.3. Only E2 has code yet.
 var Experiments = []Experiment{
 	{"E1", "baskets and plurigenera of 3-folds of general type, and the volume bound 1/1680", "R1", false},
-	{"E2", "toric mlds and enc germs: the simplicial germs of dimension 3 and the cyclic quotients of dimension 3 and 4", "R3, R4", true},
+	{"E2", "toric mlds and enc germs: the simplicial germs and the cyclic quotients of dimension 3 and 4", "R3, R4", true},
 	{"E3", "the arithmetic of the counterexamples of Ajit to effective non-vanishing", "R1", false},
 	{"E4", "the questions of Ajit on weighted hypersurfaces with no sections", "R6", false},
 	{"E5", "the volumes of Fano 3-folds and of 3-folds of general type", "R6", false},
@@ -206,7 +206,20 @@ func Run(s *Spec, opt Options) (*Record, error) {
 	}
 	var files map[string][]byte
 	var summary func() string
-	if s.Inputs.Simplicial() {
+	switch {
+	case s.Inputs.Simplicial() && s.Inputs.Dimension == 4:
+		res, err := RunE2Simplicial4(s.Inputs)
+		if err != nil {
+			return nil, err
+		}
+		rec.Mismatches, rec.Gaps = res.Mismatches(), res.Gaps()
+		rec.Result = e2s4Result(res)
+		files = map[string][]byte{
+			"germs.json":   marshalLines(res.Germs),
+			"indices.json": marshal(res.Indices),
+		}
+		summary = func() string { return e2s4Summary(s, rec, res) }
+	case s.Inputs.Simplicial():
 		res, err := RunE2Simplicial(s.Inputs)
 		if err != nil {
 			return nil, err
@@ -218,7 +231,7 @@ func Run(s *Spec, opt Options) (*Record, error) {
 			"indices.json": marshal(res.Indices),
 		}
 		summary = func() string { return e2sSummary(s, rec, res) }
-	} else {
+	default:
 		res, err := RunE2(s.Inputs)
 		if err != nil {
 			return nil, err

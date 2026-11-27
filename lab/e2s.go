@@ -42,6 +42,7 @@ type SGerm struct {
 	Enc          bool    `json:"enc"`               // exactly one exceptional divisor of log discrepancy at most 1
 	EncHL        bool    `json:"enc_hl"`            // enc, and the mld of the germ is less than 1 (Han-Liu, Definition 3.8(1))
 	Lemma        *bool   `json:"terminal_lemma,omitempty"`
+	GorIndex     int     `json:"gorenstein_index,omitempty"` // dimension 4: the least k with k age(g) an integer for each g
 
 	dual dual // the normal form of the dual lattice, for the germs of the enumeration
 }
@@ -470,6 +471,9 @@ func describe(g SGerm) string {
 func RunE2Simplicial(in E2Inputs) (SResult, error) {
 	if err := in.check(); err != nil {
 		return SResult{}, err
+	}
+	if in.Dimension != 3 {
+		return SResult{}, fmt.Errorf("E2: RunE2Simplicial runs the family simplicial in dimension 3; use RunE2Simplicial4")
 	}
 	res := SResult{MaxIndex: in.MaxIndex, ListIndex: in.listIndex(), Germs: []SGerm{}, TermFails: []SGerm{}, LemmaFails: []SGerm{}, NoTerminal: []int{}, CompareFails: []string{}}
 	type out struct {

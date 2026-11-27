@@ -171,8 +171,10 @@ The site shows the steps, the exit records and the open findings on `/audit/`, a
 
 Only E2 has code yet. It lists the isolated cyclic quotient germs 1/r(a_1, ..., a_n) of dimension 3 or 4 up to a maximum index, and computes the mld at the origin of each germ from the ages of the points of the box (the criterion of Reid and Tai). In dimension 3 it checks two known results: the terminal lemma of Morrison and Stevens (a germ is terminal if and only if two weights add to 0 mod r), and the mld 1 + 1/r of a terminal germ. In dimension 4 it records the counts and the mld values for Target T, with no prediction. The run of dimension 3 up to index 200 takes about 10 seconds and finds no mismatch in 199,746 germs.
 
+The family `simplicial` (`family: simplicial` in the inputs) lists every simplicial toric germ $\mathbb{C}^n/G$ of dimension 3 or 4, cyclic or not, isolated or not, with $G$ of order $r$ up to `max_index`, once up to a permutation of the coordinates. In dimension 4 it checks its isolated cyclic germs against the family `cyclic` and its germs with a zero coordinate against the 3-fold germs times a line, germ for germ, and it records the Gorenstein index of each germ.
+
 What the run does not do:
 
 - It runs no Magma, Macaulay2 or other tool of spec 13.1, and it uses no container with pinned images.
-- It covers only the isolated cyclic quotients, not every simplicial toric germ.
+- It covers only the simplicial toric germs, not the germs that are not simplicial.
 - It is a search, not a proof. It writes no certificate for Lean yet (spec 13.4).

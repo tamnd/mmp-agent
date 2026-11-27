@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-// E2Inputs are the inputs of experiment E2, the minimal log discrepancies of toric germs. The family cyclic, the default, covers the isolated cyclic quotient germs 1/r(a_1, ..., a_n) of one dimension n, for each index r from 2 to the maximum. The family simplicial covers each simplicial toric germ of dimension 3, whose index is the order of its group (e2s.go).
+// E2Inputs are the inputs of experiment E2, the minimal log discrepancies of toric germs. The family cyclic, the default, covers the isolated cyclic quotient germs 1/r(a_1, ..., a_n) of one dimension n, for each index r from 2 to the maximum. The family simplicial covers each simplicial toric germ of dimension 3 or 4, whose index is the order of its group (e2s.go, e2s4.go).
 type E2Inputs struct {
 	Dimension int    `yaml:"dimension" json:"dimension"`                       // 3 or 4
 	MaxIndex  int    `yaml:"max_index" json:"max_index"`                       // the largest index r
@@ -34,10 +34,10 @@ func (in E2Inputs) check() error {
 	switch {
 	case in.Family != "" && in.Family != "cyclic" && in.Family != "simplicial":
 		return fmt.Errorf("E2: the family is %q, but mmp runs only the families cyclic and simplicial", in.Family)
-	case in.Simplicial() && in.Dimension != 3:
-		return fmt.Errorf("E2: the family simplicial has only the dimension 3, not %d", in.Dimension)
-	case in.Simplicial() && in.MaxIndex > e2MaxIndexSimplicial3:
-		return fmt.Errorf("E2: the maximum index of the family simplicial is %d", e2MaxIndexSimplicial3)
+	case in.Simplicial() && in.Dimension == 3 && in.MaxIndex > e2MaxIndexSimplicial3:
+		return fmt.Errorf("E2: the maximum index of the family simplicial in dimension 3 is %d", e2MaxIndexSimplicial3)
+	case in.Simplicial() && in.Dimension == 4 && in.MaxIndex > e2MaxIndexSimplicial4:
+		return fmt.Errorf("E2: the maximum index of the family simplicial in dimension 4 is %d", e2MaxIndexSimplicial4)
 	case !in.Simplicial() && in.ListIndex != 0:
 		return errors.New("E2: list_index is an input of the family simplicial only")
 	case in.ListIndex < 0 || in.ListIndex > in.MaxIndex:
@@ -48,7 +48,7 @@ func (in E2Inputs) check() error {
 		return errors.New("E2: the maximum index must be at least 2")
 	case !in.Simplicial() && in.Dimension == 3 && in.MaxIndex > e2MaxIndex3:
 		return fmt.Errorf("E2: the maximum index in dimension 3 is %d", e2MaxIndex3)
-	case in.Dimension == 4 && in.MaxIndex > e2MaxIndex4:
+	case !in.Simplicial() && in.Dimension == 4 && in.MaxIndex > e2MaxIndex4:
 		return fmt.Errorf("E2: the maximum index in dimension 4 is %d", e2MaxIndex4)
 	}
 	return nil
